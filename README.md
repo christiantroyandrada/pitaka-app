@@ -1,56 +1,64 @@
-# Welcome to your Expo app 👋
+# Pitaka
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+*Pitaka* — Filipino for wallet.
 
-## Get started
+A mock e-wallet super-app, built to learn React Native and to work through the
+architecture of a Philippine e-wallet end to end: a native host shell, H5
+microfrontends in WebViews, a typed JS bridge between them, and
+remote-config-driven feature gating.
 
-1. Install dependencies
+**No real money, no real credentials, nothing proprietary.** Balances are fake
+and openly so. What is deliberately *not* faked is the domain modelling —
+integer centavos, an append-only ledger, and idempotent money movement.
 
-   ```bash
-   npm install
-   ```
+## Status
 
-2. Start the app
+**P0 — pure React Native, runs in Expo Go.** No Firebase, no WebView, no native
+modules, no server. Every seam that later phases replace with a real
+implementation already sits behind a tested module boundary.
 
-   ```bash
-   npx expo start
-   ```
+| Layer | State |
+|---|---|
+| Money, ledger, transfers | Done — 57 tests |
+| Config parsing and tile resolution | Done |
+| Wallet store | Done |
+| Screens (login, home, send, transactions) | In progress |
+| Firebase Remote Config, WebView container, typed bridge, H5 apps | Later phases |
 
-In the output, you'll find options to open the app in a
+## Three decisions worth the click
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+**Money is always integer centavos.** No float ever represents money, and
+parsing is string-based — routing `0.29` through a float cannot represent it
+exactly, and that is where a rounding bug would enter the ledger.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**Balances are derived, never stored.** A balance is `SUM(amount_centavos)` over
+an account's ledger entries. Every movement writes entries summing to zero
+across accounts, including the seeded opening balance. A single assertion —
+"the whole ledger sums to zero" — catches any half-written transaction.
 
-## Get a fresh project
+**Feature flags fail closed.** The tile resolver is a pure function from config
+plus flags to a navigation decision. A flag value that cannot be parsed hides
+the feature rather than showing it, because a parse error should never be the
+reason something gated ships.
 
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+pnpm install
+pnpm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Open in Expo Go. Log in with mobile `917 123 4567`, MPIN `123456`.
 
-### Other setup steps
+## Test
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+pnpm test
+pnpm typecheck
+```
 
-## Learn more
+## Docs
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Design spec](docs/superpowers/specs/) — architecture, bridge contract, threat model
+- [P0 plan](docs/superpowers/plans/) — task-by-task, TDD, with the scaffold gotchas recorded
+- Architecture decision records land in `docs/adr/` as each decision survives implementation
