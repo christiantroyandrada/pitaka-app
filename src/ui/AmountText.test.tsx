@@ -7,17 +7,17 @@ import { AmountText } from './AmountText'
 describe('AmountText', () => {
   it('renders centavos as a peso amount', async () => {
     await render(<AmountText centavos={645613} />)
-    expect(screen.getByText('₱ 6,456.13')).toBeOnTheScreen()
+    expect(screen.getByText('₱6,456.13')).toBeOnTheScreen()
   })
 
   it('renders zero', async () => {
     await render(<AmountText centavos={0} />)
-    expect(screen.getByText('₱ 0.00')).toBeOnTheScreen()
+    expect(screen.getByText('₱0.00')).toBeOnTheScreen()
   })
 
   it('renders a negative amount', async () => {
     await render(<AmountText centavos={-2550} />)
-    expect(screen.getByText('₱ -25.50')).toBeOnTheScreen()
+    expect(screen.getByText('₱-25.50')).toBeOnTheScreen()
   })
 
   // The glyph and grouping commas are decoration; a screen reader should hear

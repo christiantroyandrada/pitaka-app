@@ -31,7 +31,7 @@ export function AmountText({ centavos, size = 'md' }: Props) {
         fontWeight: size === 'lg' ? '700' : '500',
       }}
     >
-      {`₱ ${formatCentavos(centavos)}`}
+      {`₱${formatCentavos(centavos)}`}
     </Text>
   )
 }
