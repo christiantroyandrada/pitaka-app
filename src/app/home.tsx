@@ -13,8 +13,7 @@ export default function HomeScreen() {
     walletStore.getBalance(ACCOUNTS.user),
   )
 
-  // P0 reads the grid from the bundled default. P1 replaces this one line with a
-  // Remote Config fetch; the parser and the resolver stay exactly as they are.
+  // P1 swaps this one line for a Remote Config fetch.
   const { grid } = parseServicesGrid(undefined)
 
   const navigate = (intent: NavIntent) => {
@@ -22,7 +21,7 @@ export default function HomeScreen() {
       router.push(intent.route === 'send' ? '/send' : '/transactions')
       return
     }
-    // P1 opens this in a WebView. P0 proves the intent is produced correctly.
+    // P1 opens this in a WebView.
     Alert.alert('H5 page', intent.url)
   }
 

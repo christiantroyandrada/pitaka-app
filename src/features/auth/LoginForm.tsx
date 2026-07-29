@@ -40,10 +40,7 @@ export function LoginForm({ onSuccess }: Props) {
       }}>Pitaka
       </Text>
 
-      {/* The failure belongs to the credential pair, not to the number alone, so
-          it is rendered once — under the MPIN, where the retry happens. Passing
-          it to both inputs printed the same message twice. Editing either field
-          still clears it. */}
+      {/* Error shown once, under the MPIN, where the retry happens. */}
       <MobileInput
         value={mobile}
         onChangeText={(v) => {

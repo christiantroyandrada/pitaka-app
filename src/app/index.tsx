@@ -4,7 +4,6 @@ import { LoginForm } from '@/features/auth/LoginForm'
 import { tokens } from '@/ui/tokens'
 
 export default function LoginScreen() {
-  // The screen stays a thin wrapper so LoginForm can be tested without a router.
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: tokens.color.surface, justifyContent: 'center' }}
