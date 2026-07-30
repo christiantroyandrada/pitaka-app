@@ -16,9 +16,14 @@ export default function HomeScreen() {
   // P1 swaps this one line for a Remote Config fetch.
   const { grid } = parseServicesGrid(undefined)
 
+  // Registry ids map to routes here rather than being interpolated, so an
+  // unknown target from config cannot navigate anywhere unexpected.
+  const NATIVE_ROUTES = { send: '/send', transactions: '/transactions' } as const
+
   const navigate = (intent: NavIntent) => {
     if (intent.kind === 'native') {
-      router.push(intent.route === 'send' ? '/send' : '/transactions')
+      const route = NATIVE_ROUTES[intent.route as keyof typeof NATIVE_ROUTES]
+      if (route) router.push(route)
       return
     }
     // P1 opens this in a WebView.

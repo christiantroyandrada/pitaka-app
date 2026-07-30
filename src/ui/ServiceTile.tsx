@@ -1,14 +1,16 @@
 import React from 'react'
 import {Pressable, Text, View} from 'react-native'
 import {tokens} from './tokens'
+import {glyphFor} from './icons'
 
 type Props = {
   label: string,
+  icon?: string,
   badge?: string,
   onPress: () => void,
 }
 
-export function ServiceTile({label, badge, onPress}: Props) {
+export function ServiceTile({label, icon, badge, onPress}: Props) {
   return (
     <Pressable
       accessibilityRole='button'
@@ -30,6 +32,13 @@ export function ServiceTile({label, badge, onPress}: Props) {
           justifyContent: 'center',
         }}
       >
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility='no-hide-descendants'
+          style={{fontSize: 22, color: tokens.color.brand}}
+        >
+          {glyphFor(icon ?? '')}
+        </Text>
         {
           badge ? (
             <Text

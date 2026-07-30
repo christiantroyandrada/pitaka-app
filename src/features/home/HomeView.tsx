@@ -70,6 +70,7 @@ export function HomeView({ balanceCentavos, grid, flags, onNavigate }: Props) {
             <ServiceTile
               key={tile.key}
               label={tile.label}
+              icon={tile.icon}
               badge={tile.badge}
               onPress={() => onNavigate(intent)}
             />
