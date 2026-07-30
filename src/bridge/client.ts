@@ -17,6 +17,9 @@ export type BridgeClient = {
   pendingCount: () => number
   _receive: (res: BridgeResponse) => void
   _receiveEvent: (evt: BridgeEvent) => void
+  /** What the host's injected script calls. Strings survive injection intact. */
+  _receiveJSON: (raw: string) => void
+  _receiveEventJSON: (raw: string) => void
 }
 
 type Options = {
@@ -123,5 +126,22 @@ export function createBridgeClient({
     listeners.clear()
   }
 
-  return { call, on, dispose, pendingCount: () => pending.size, _receive, _receiveEvent }
+  const parseThen = <T,>(raw: string, then: (v: T) => void) => {
+    try {
+      then(JSON.parse(raw) as T)
+    } catch {
+      /* a malformed frame is dropped, not thrown into the page */
+    }
+  }
+
+  return {
+    call,
+    on,
+    dispose,
+    pendingCount: () => pending.size,
+    _receive,
+    _receiveEvent,
+    _receiveJSON: (raw) => parseThen<BridgeResponse>(raw, _receive),
+    _receiveEventJSON: (raw) => parseThen<BridgeEvent>(raw, _receiveEvent),
+  }
 }

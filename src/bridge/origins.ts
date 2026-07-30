@@ -7,6 +7,8 @@ export const ALLOWED_ORIGINS: readonly string[] = [
   'https://fintech.ctaprojects.xyz',
   // The H5 dev server. Kept separate so production stays https-only.
   'http://localhost:5173',
+  // The static H5 pages served alongside the Expo web build in development.
+  'http://localhost:8081',
 ]
 
 const originOf = (value: string): string | null => {

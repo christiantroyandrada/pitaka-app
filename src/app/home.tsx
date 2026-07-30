@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from 'react'
-import { SafeAreaView, Alert } from 'react-native'
+import { SafeAreaView } from 'react-native'
 import { router } from 'expo-router'
 import { HomeView } from '@/features/home/HomeView'
 import { walletStore } from '@/data/walletStoreInstance'
 import { ACCOUNTS } from '@/data/seed'
 import { parseServicesGrid } from '@/config/parseConfig'
+import { H5_BASE_URL } from '@/config/h5'
 import { tokens } from '@/ui/tokens'
 import type { NavIntent } from '@/config/resolveTile'
 
@@ -26,13 +27,18 @@ export default function HomeScreen() {
       if (route) router.push(route)
       return
     }
-    // P1 opens this in a WebView.
-    Alert.alert('H5 page', intent.url)
+    router.push({ pathname: '/webview', params: { url: intent.url } })
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.color.surface }}>
-      <HomeView balanceCentavos={balance} grid={grid} flags={{}} onNavigate={navigate} />
+      <HomeView
+        balanceCentavos={balance}
+        grid={grid}
+        flags={{}}
+        h5BaseUrl={H5_BASE_URL}
+        onNavigate={navigate}
+      />
     </SafeAreaView>
   )
 }

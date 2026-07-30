@@ -6,19 +6,19 @@ import { tokens } from '@/ui/tokens'
 import { resolveTile, type Flags, type NavIntent } from '@/config/resolveTile'
 import type { ServicesGrid } from '@/config/schema'
 
-export const H5_BASE_URL = 'https://fintech.ctaprojects.xyz'
-
 type Props = {
   balanceCentavos: number,
   grid: ServicesGrid,
   flags: Flags,
+  /** Passed in rather than read from a global, so this stays testable. */
+  h5BaseUrl: string,
   onNavigate: (intent: NavIntent) => void,
 }
 
-export function HomeView({ balanceCentavos, grid, flags, onNavigate }: Props) {
+export function HomeView({ balanceCentavos, grid, flags, h5BaseUrl, onNavigate }: Props) {
   const visible = grid.categories.flatMap((category) =>
     category.tiles
-      .map((tile) => ({ tile, intent: resolveTile(tile, flags, H5_BASE_URL) }))
+      .map((tile) => ({ tile, intent: resolveTile(tile, flags, h5BaseUrl) }))
       .filter((entry): entry is { tile: typeof entry.tile; intent: NavIntent } => entry.intent !== null),
   )
 
