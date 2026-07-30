@@ -125,6 +125,16 @@ const contract = (name: string, makeHandlers: () => HandlerSet) => {
         ).rejects.toMatchObject({ code: 'IDEMPOTENCY_KEY_REUSED' })
       })
 
+      // Same key, same amount, different biller. If this reads as a replay the
+      // H5 gets a "completed" receipt for a biller that was never paid.
+      it('refuses the same key with a different biller', async () => {
+        const { client } = connect(makeHandlers())
+        await client.call('payments.requestPayment', payment())
+        await expect(
+          client.call('payments.requestPayment', payment({ billerId: 'globe' })),
+        ).rejects.toMatchObject({ code: 'IDEMPOTENCY_KEY_REUSED' })
+      })
+
       it('rejects a zero amount', async () => {
         const { client } = connect(makeHandlers())
         await expect(

@@ -31,8 +31,15 @@ export function applyTransfer(
     // Same key, same operation → return the original outcome and write nothing.
     // Same key, different operation → refuse; silently succeeding would hide a
     // caller bug behind a stale receipt.
-    const debit = existing.find((e) => e.accountId === req.from)
-    const sameOperation = debit?.amountCentavos === -req.amountCentavos
+    // Matched by entry id, not by account, so a self-transfer still resolves to
+    // the right leg. Payee is part of the comparison: same key and amount to a
+    // different payee is a different operation, not a replay.
+    const debit = existing.find((e) => e.id === `${txId}:debit`)
+    const credit = existing.find((e) => e.id === `${txId}:credit`)
+    const sameOperation =
+      debit?.accountId === req.from &&
+      credit?.accountId === req.to &&
+      debit?.amountCentavos === -req.amountCentavos
     return sameOperation
       ? { ok: true, txId, entries: [] }
       : { ok: false, code: 'IDEMPOTENCY_KEY_REUSED' }

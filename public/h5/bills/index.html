@@ -5,7 +5,11 @@
 <style>
   :root { --brand:#0057E4; --text:#12203A; --muted:#5B6B87; --border:#D7E0F0; --alt:#F2F6FF; }
   * { box-sizing: border-box; }
-  body { margin:0; font:16px/1.5 -apple-system,system-ui,sans-serif; color:var(--text); padding:24px; }
+  /* The palette is light-only. Without both of these a dark-mode WebView keeps
+     its dark canvas under this dark text, which is unreadable on most phones. */
+  html { color-scheme:light; }
+  body { margin:0; font:16px/1.5 -apple-system,system-ui,sans-serif; color:var(--text);
+         background:#fff; padding:24px; }
   h1 { font-size:20px; margin:0 0 4px; }
   .who { color:var(--muted); font-size:13px; margin-bottom:24px; }
   .biller { display:flex; align-items:center; justify-content:space-between;

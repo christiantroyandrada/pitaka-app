@@ -26,18 +26,21 @@ modules of my own.
 | Firebase Remote Config | Not started |
 | BFF with request signing, second H5 app, VPS deploy | Not started |
 
-197 tests, strict TypeScript, CI on every push.
+210 tests across 20 suites, strict TypeScript, CI on every push.
 
 The bridge and the H5 page live here for now. They move to their own repos when
 there are two H5 apps to keep honest, which is the whole argument of
 [ADR 1](docs/adr/001-multi-repo.md).
 
-**One gap worth stating plainly:** `react-native-webview` has no web build and
+**Two gaps worth stating plainly.** `react-native-webview` has no web build and
 this machine has no simulator, so the native transport is unverified on a
-device. `src/bridge/loopback.test.ts` covers every layer on both sides,
-including the JSON injection boundary and a real ledger debit from an
-H5-initiated payment. The untested link is react-native-webview's own
-postMessage plumbing.
+device. `src/bridge/loopback.test.ts` drives both sides through the real JSON
+injection boundary, including a ledger debit from an H5-initiated payment, but
+it wires up `src/bridge/client.ts` — and the Bills page ships its own
+hand-written client, because it has no build step and can't import from `src/`.
+So the untested links are react-native-webview's postMessage plumbing and that
+copy of the client. `src/bridge/h5Page.test.ts` only string-matches the page to
+catch the wire constants drifting apart.
 
 ## Three decisions worth the click
 
@@ -63,6 +66,13 @@ pnpm start
 ```
 
 Open in Expo Go. Log in with mobile `917 123 4567`, MPIN `123456`.
+
+The same dev server serves the H5 pages out of `public/`, addressed by whatever
+host your device reached Metro on, so Bills works on a handset and not just in a
+simulator. Bills is the only H5 tile enabled: the others are real entries in the
+grid config with `enabled: false`, because their H5 app isn't built yet and a
+tile with no page behind it is a dead end. Turning one on is what shipping its
+H5 app looks like.
 
 ## Test
 

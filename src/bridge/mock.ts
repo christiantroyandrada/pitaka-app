@@ -9,7 +9,7 @@ export function createMockHandlers(
   overrides: Partial<HandlerSet> = {},
   flags: Record<string, string> = {},
 ): HandlerSet {
-  const seen = new Map<string, { txId: string; amountCentavos: number }>()
+  const seen = new Map<string, { txId: string; amountCentavos: number; billerId: string }>()
 
   const base: HandlerSet = {
     getEnvInfo: () => ({ platform: 'browser-mock', appVersion: '0.0.0-mock', bridgeVersion: PROTOCOL_VERSION }),
@@ -24,19 +24,22 @@ export function createMockHandlers(
         return acc
       }, {}),
     toast: () => undefined,
-    requestPayment: ({ idempotencyKey, amountCentavos }) => {
-      // Mirrors the ledger's rule: same key and amount replays, same key with a
-      // different amount is refused. Without the second branch an H5 would see
-      // a stale receipt here for a charge that never happened on device.
+    requestPayment: ({ idempotencyKey, amountCentavos, billerId }) => {
+      // Mirrors the ledger's rule: a replay is the same key, amount AND payee.
+      // Any other reuse is refused. Comparing only the amount would hand back a
+      // stale receipt for a biller that was never paid.
       const existing = seen.get(idempotencyKey)
       if (existing) {
-        if (existing.amountCentavos !== amountCentavos) {
-          throw new BridgeMethodError('IDEMPOTENCY_KEY_REUSED', 'key reused with a different amount')
+        if (existing.amountCentavos !== amountCentavos || existing.billerId !== billerId) {
+          throw new BridgeMethodError(
+            'IDEMPOTENCY_KEY_REUSED',
+            'key reused for a different payment',
+          )
         }
         return { transactionId: existing.txId, status: 'completed' }
       }
       const txId = `tx:mock:${seen.size + 1}`
-      seen.set(idempotencyKey, { txId, amountCentavos })
+      seen.set(idempotencyKey, { txId, amountCentavos, billerId })
       return { transactionId: txId, status: 'completed' }
     },
   }

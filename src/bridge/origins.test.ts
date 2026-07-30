@@ -1,4 +1,5 @@
 import { isAllowedUrl, h5UrlFor, isAllowedIn, RELEASE_ORIGINS, DEV_ONLY_ORIGINS } from './origins'
+import { DEV_ORIGIN } from '@/config/devHost'
 
 const BASE = 'https://fintech.ctaprojects.xyz'
 
@@ -66,6 +67,13 @@ describe('isAllowedUrl', () => {
 
   it('accepts the production origin against the release list', () => {
     expect(isAllowedIn(RELEASE_ORIGINS, `${BASE}/h5/bills/`)).toBe(true)
+  })
+
+  // The dev origin is derived at runtime from Expo's manifest, so it is the one
+  // entry that isn't visible by reading the list. It must stay dev-only.
+  it('keeps the derived dev origin out of the release list', () => {
+    expect(RELEASE_ORIGINS).not.toContain(DEV_ORIGIN)
+    expect(isAllowedIn(RELEASE_ORIGINS, `${DEV_ORIGIN}/h5/bills/`)).toBe(false)
   })
 })
 

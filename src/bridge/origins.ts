@@ -1,3 +1,5 @@
+import { DEV_ORIGIN } from '@/config/devHost'
+
 /**
  * Exact origins, compiled in. Never a suffix or substring match: `endsWith`
  * would accept `evil-fintech.ctaprojects.xyz`, and `includes` would accept
@@ -14,6 +16,9 @@ export const RELEASE_ORIGINS: readonly string[] = ['https://fintech.ctaprojects.
 export const DEV_ONLY_ORIGINS: readonly string[] = [
   'http://localhost:5173',
   'http://localhost:8081',
+  // The LAN origin Expo Go served the bundle from, so the H5 page is reachable
+  // on a real handset. Same __DEV__ gate, so it never reaches a release build.
+  DEV_ORIGIN,
 ]
 
 export const ALLOWED_ORIGINS: readonly string[] = __DEV__

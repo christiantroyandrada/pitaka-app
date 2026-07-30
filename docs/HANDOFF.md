@@ -5,10 +5,11 @@ This is what I'd need to know to pick it up cold.
 
 ## Where it actually stands
 
-**Done and verified.** 197 tests across 21 suites, `tsc --noEmit` clean, `expo export`
+**Done and verified.** 210 tests across 20 suites, `tsc --noEmit` clean, `expo export`
 bundles, CI green on every push. Run end to end in a browser on 2026-07-30: logged in,
 sent ₱50, watched the balance go 6,456.13 → 6,406.13, saw both entries in the
-transaction list.
+transaction list. Verified again from a clean clone of `main`: `pnpm install`,
+typecheck and the full suite all pass with nothing but Node and pnpm on the box.
 
 **Built:** integer-centavo money, append-only ledger with derived balances, idempotent
 transfers, zod-validated config parsing with fallback, a pure tile resolver that fails
@@ -26,8 +27,18 @@ advance, not descriptions of code.
 **Unverified on a device.** `react-native-webview` has no web build and this
 machine has no simulator, so the native postMessage transport has never run.
 `src/bridge/loopback.test.ts` drives every layer we own, including the JSON
-injection boundary. First job on a machine with Xcode: run the bills flow on a
-simulator and see whether the round-trip actually works.
+injection boundary — but it wires up `src/bridge/client.ts`, and the Bills page
+hand-writes its own copy of that client, which no test executes. First job on a
+machine with Xcode: run the bills flow on a simulator and see whether the
+round-trip actually works.
+
+**Known rough edges, deliberately left.** There's no linter: `expo lint` pulls
+`eslint-config-expo`, which doesn't work under ESLint 10, so the broken script
+was removed rather than shipped. `/home` and `/transactions` prerender to an
+empty shell in the static web export because `useSyncExternalStore` has no
+`getServerSnapshot`; they hydrate fine in a browser, so this only matters if the
+web build is ever the shop window. `h5UrlFor` is tested and unused — the live
+path builds the URL in `resolveTile` instead.
 
 ## What I would do next, in this order
 
