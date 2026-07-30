@@ -13,14 +13,14 @@ Retries are normal in a wallet: flaky networks, impatient taps, app restarts mid
 
 Same key with a different amount returns `IDEMPOTENCY_KEY_REUSED` rather than the original receipt. A stale receipt for an amount the user never sent is a worse failure than a visible error.
 
-Two layers, because they guard different things. The key protects the ledger. A separate `submitted` ref in `SendMoneyForm.tsx` protects navigation: the double press was already harmless to the balance, but it fired `onDone` twice and popped two screens. Both are covered by tests ("replaying the same key does not move money twice", "double-pressing Send completes the flow only once").
+Two layers, because they guard different things. The key protects the ledger. A separate `submitted` ref in `SendMoneyForm.tsx` protects navigation: the double press was already harmless to the balance, but it fired `onDone` twice and popped two screens. Both are covered by tests ("replaying the same key doesn't move money twice", "double-pressing Send completes the flow only once").
 
 ## Consequences
 
-Idempotency is derivable from persisted state alone, with no side store. The cost: txIds are guessable and carry client-chosen input, so a real backend must namespace keys per account and reject malformed ones. Callers must also hold a key across retries — `SendMoneyForm` keeps one in a ref for the mount, which means a remount is treated as a new intent.
+Idempotency is derivable from persisted state alone, with no side store. The cost: txIds are guessable and carry client-chosen input, so a real backend must namespace keys per account and reject malformed ones. Callers must also hold a key across retries. `SendMoneyForm` keeps one in a ref for the mount, which means a remount is treated as a new intent.
 
 ## When this would change
 
 If a server issues transaction ids, the derivation goes away and `applyTransfer` needs an explicit key index. If keys ever become user-visible or cross accounts, they get hashed and namespaced. If a mutation needs the original receipt on key reuse rather than a refusal, the reuse branch splits by operation type.
 
-*Draft — revise in my own words before treating this as final.*
+*Draft. Revise in my own words before treating this as final.*

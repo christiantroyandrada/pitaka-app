@@ -15,14 +15,14 @@ The host is the only Firebase client. H5 pages read flags through one bridge met
 
 ## Consequences
 
-One fetch schedule, one activation moment, one source of flag truth. H5 bundles carry no Firebase SDK, and a flag rollout needs no H5 redeploy; the microfrontends ship no flag defaults at all.
+That gives a single fetch schedule and a single activation moment, so host and H5 can't disagree about whether a feature is on. H5 bundles carry no Firebase SDK, and a flag rollout needs no H5 redeploy; the microfrontends ship no flag defaults at all.
 
-Cost: an H5 page cannot read a flag without a working host. Browser-only H5 development therefore needs the `pitaka-bridge` mock to serve flag fixtures, which puts the mock on the contract-test surface. Flags are also async in H5 where they are sync in the host, so every H5 gate needs a defined pre-resolution state.
+Cost: an H5 page can't read a flag without a working host. Browser-only H5 development therefore needs the `pitaka-bridge` mock to serve flag fixtures, which puts the mock on the contract-test surface. Flags are also async in H5 where they are sync in the host, so every H5 gate needs a defined pre-resolution state.
 
 ## When this would change
 
 - An H5 needs a flag before the handshake resolves and the pre-resolution state reads as broken: the host injects a flag snapshot at WebView load. Still no second SDK.
 - `config.getFlags` p95 exceeds 100 ms on a mid-range Android device: same fix.
-- An H5 needs Firebase A/B Testing or Analytics-based targeting the host cannot proxy, because assignment has to happen per web page. That H5 gets its own client and this ADR is superseded.
+- An H5 needs Firebase A/B Testing or Analytics-based targeting the host can't proxy, because assignment has to happen per web page. That H5 gets its own client and this ADR is superseded.
 
-*Draft — revise in my own words before treating this as final.*
+*Draft. Revise in my own words before treating this as final.*

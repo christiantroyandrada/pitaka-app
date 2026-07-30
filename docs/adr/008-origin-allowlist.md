@@ -7,13 +7,13 @@
 
 The services grid arrives from remote config. `resolveTile` (`src/config/resolveTile.ts`) joins a config-supplied base URL with a tile's `target` and returns it for whatever string it was handed. A WebView that loads that URL inherits the bridge, and with it the wallet's signing capability, so a config value has the same reach as shipped code.
 
-This check is usually written as a hostname suffix match, which accepts `pitaka.ph.attacker.com` and ignores scheme and port. The production system I worked in did map a config base URL through a hardcoded allowlist, which was the right shape, but compared hosts rather than origins.
+This check is usually written loosely. A `startsWith` or `includes` test accepts `pitaka.ph.attacker.com`; a suffix match accepts `evil-pitaka.ph`. Both ignore scheme and port. The production system I worked in did map a config base URL through a hardcoded allowlist, which was the right shape, but compared hosts rather than origins.
 
 ## Decision
 
-A compile-time array of exact origin strings: scheme, host, port, `https:` only. A value is accepted only when `new URL(v).origin` is strictly equal to a member. No suffix match, no hostname regex, no wildcards. Anything unparseable or unrecognised falls back to `DEFAULT_GRID` in `src/config/defaults.ts`, the same failure mode `parseServicesGrid` already uses.
+A compile-time array of exact origin strings: scheme, host, port, `https:` only. A value is accepted only when `new URL(v).origin` is strictly equal to a member. No suffix match, no hostname regex, no wildcards. Anything unparseable or unrecognised falls back to the compiled-in default base URL, mirroring the way `parseServicesGrid` falls back to `DEFAULT_GRID`.
 
-Enforced in two places: at parse time alongside the zod schemas in `src/config/schema.ts`, and again in the WebView's `onShouldStartLoadWithRequest`, so a redirect or an in-page `location` assignment cannot leave the origin the page started on. Tile keys stay bounded by `registryKey` (`/^[a-z][a-z0-9-]*$/`) before interpolation, so `target` cannot traverse the path or open a query string.
+Enforced in two places. First at the flag boundary, where the `h5_base_url` value is read. Grid tiles never carry a URL, so this is the only config-supplied origin in the system. Then again in the WebView's `onShouldStartLoadWithRequest`, so a redirect or an in-page `location` assignment can't leave the origin the page started on. Separately, a tile's `target` is bounded by `registryKey` (`/^[a-z][a-z0-9-]*$/`) in `src/config/schema.ts` before it is interpolated into the path, so it can't traverse or open a query string. A tile's `key` is deliberately *not* bounded that way, see ADR 13 for what that costs.
 
 ## Consequences
 
@@ -27,4 +27,4 @@ The cost is that adding an H5 origin needs an app release. That removes the "fli
 - `onShouldStartLoadWithRequest` is shown not to fire for some navigation class (iframe, `window.open`, worker fetch). Then the BFF adds CSP `frame-src`/`connect-src` as a third layer.
 - Preview URLs become routine in QA. Then a `__DEV__`-only list is added, with a test asserting the release list contains no `http:` or localhost origin.
 
-*Draft — revise in my own words before treating this as final.*
+*Draft. Revise in my own words before treating this as final.*

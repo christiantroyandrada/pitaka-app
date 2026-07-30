@@ -5,7 +5,7 @@
 
 ## Context
 
-The planned BFF verifies an HMAC-SHA256 signature over method, path, timestamp, nonce and body hash. A signature proves the caller holds the key, not which user is calling; with a shared key it cannot.
+The planned BFF verifies an HMAC-SHA256 signature over method, path, timestamp, nonce and body hash. A signature proves the caller holds the key, not which user is calling; with a shared key it can't.
 
 Conflating the two is a real failure class. In a production wallet I worked in, the web layer delegated signing to native so it never held a key, which was right, but the BFF relayed the signed blob without verifying it and identity rode in the request payload.
 
@@ -17,7 +17,7 @@ Identity is a separate opaque `sessionId` issued by `POST /auth/login` (mobile +
 
 ## Consequences
 
-Signature and session fail independently, with distinct codes (`INVALID_SIGNATURE` vs `SESSION_EXPIRED`), so a 401 is diagnosable. Costs: session state lives in the BFF in memory, so a restart logs everyone out; a stolen `sessionId` is sufficient on its own, since the shared key adds nothing and nothing binds a session to a device; and the API cannot express one actor operating on another account.
+Signature and session fail independently, with distinct codes (`INVALID_SIGNATURE` vs `SESSION_EXPIRED`), so a 401 is diagnosable. Costs: session state lives in the BFF in memory, so a restart logs everyone out; a stolen `sessionId` is sufficient on its own, since the shared key adds nothing and nothing binds a session to a device; and the API can't express one actor operating on another account.
 
 ## When this would change
 
@@ -25,4 +25,4 @@ Signature and session fail independently, with distinct codes (`INVALID_SIGNATUR
 - Sessions must survive a BFF restart: replace the in-memory store with a signed short-TTL token and a revocation list.
 - Keys become per-device and bound to an account at registration, at which point `keyId` carries identity and `X-Session-Id` is redundant.
 
-*Draft — revise in my own words before treating this as final.*
+*Draft. Revise in my own words before treating this as final.*

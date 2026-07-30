@@ -4,7 +4,7 @@ Why things are the way they are. Each record states the decision, what it costs,
 and what would make me change my mind.
 
 Several decisions are deliberate departures from patterns I maintained in a
-production super-app. Those are described as failure *classes* — no employer,
+production super-app. Those are described as failure *classes*. No employer,
 repository, host, or service is named anywhere in this repo.
 
 | # | Decision | Phase |
@@ -24,5 +24,5 @@ repository, host, or service is named anywhere in this repo.
 | [13](013-config-driven-navigation.md) | Config-driven navigation by registry id, flags failing closed | **Built** |
 
 Records for unbuilt phases are decisions made in advance, not descriptions of
-existing code. The phase column says which is which, deliberately — an ADR
-defending something that does not exist is worth less than one that admits it.
+existing code. The phase column says which is which. That's deliberate: an ADR
+defending something that doesn't exist is worth less than one that admits it.
