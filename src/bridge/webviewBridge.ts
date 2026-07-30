@@ -52,10 +52,12 @@ export function createWebViewBridge(handlers: HandlerSet, inject: Injector) {
       } catch {
         return
       }
-      // host.handle returns without replying when it can't correlate a frame, so
-      // nothing would prune this entry. Cap the map: the page controls both the
-      // ids and the message rate.
-      if (typeof req?.id === 'string') {
+      // Only track what the host will actually answer. It drops a frame it can't
+      // correlate without replying, and an untracked entry is never pruned — so
+      // recording those would let a page fill the map and wedge the bridge for
+      // the life of the document. The cap still applies to real traffic, where
+      // the page controls both the ids and the message rate.
+      if (typeof req?.id === 'string' && typeof req?.method === 'string') {
         if (arrivedIn.size >= MAX_IN_FLIGHT) return
         arrivedIn.set(req.id, loadId)
       }

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { h5UrlFor } from '@/bridge/origins'
 import type { Tile } from './schema'
 
 export type NavIntent = { kind: 'native'; route: string } | { kind: 'h5'; url: string }
@@ -36,6 +37,9 @@ export function resolveTile(tile: Tile, flags: Flags, h5BaseUrl: string): NavInt
 
   if (tile.type === 'native') return { kind: 'native', route: tile.target }
 
-  const base = h5BaseUrl.replace(/\/+$/, '')
-  return { kind: 'h5', url: `${base}/h5/${tile.target}/` }
+  // Both halves of the URL are config-supplied, so neither is interpolated raw.
+  // h5UrlFor bounds the registry key and checks the base against the origin
+  // allowlist; anything it refuses hides the tile, same as a failed flag.
+  const url = h5UrlFor(h5BaseUrl, tile.target)
+  return url ? { kind: 'h5', url } : null
 }

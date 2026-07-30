@@ -37,6 +37,22 @@ describe('parseAmountToCentavos', () => {
 
   it('ignores commas', () => {
     expect(parseAmountToCentavos('1,234.56')).toBe(123456)
+    expect(parseAmountToCentavos('1,234,567.89')).toBe(123456789)
+  })
+
+  // Stripping commas before validating accepts any placement, so a comma-decimal
+  // habit turns ₱1.50 into ₱15.00 without complaint. A tenfold error on a money
+  // field should be a refusal, not a silent reinterpretation.
+  it('rejects a comma used as a decimal separator', () => {
+    expect(parseAmountToCentavos('1,5')).toBeNull()
+    expect(parseAmountToCentavos('1,50')).toBeNull()
+  })
+
+  it('rejects malformed comma grouping', () => {
+    expect(parseAmountToCentavos('1,,,5')).toBeNull()
+    expect(parseAmountToCentavos('1,23,456')).toBeNull()
+    expect(parseAmountToCentavos(',123')).toBeNull()
+    expect(parseAmountToCentavos('1234,')).toBeNull()
   })
 
   it('rejects more than two decimal places', () => {

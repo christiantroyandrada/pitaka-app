@@ -51,6 +51,26 @@ describe('onMessage', () => {
   })
 })
 
+describe('in-flight cap', () => {
+  // The host drops a frame it can't correlate without replying, so nothing
+  // prunes it from the in-flight map. Enough of those and a hostile — or merely
+  // buggy — page wedges the bridge for the rest of the document's life.
+  it('still answers a real request after a flood of uncorrelatable frames', async () => {
+    const { injected, bridge } = setup()
+
+    for (let i = 0; i < 200; i += 1) {
+      bridge.onMessage(JSON.stringify({ id: `junk-${i}`, v: PROTOCOL_VERSION, method: 42 }))
+    }
+    await flush()
+    expect(injected).toHaveLength(0)
+
+    bridge.onMessage(request('system.getEnvInfo', undefined, 'real-1'))
+    await flush()
+    expect(injected).toHaveLength(1)
+    expect(injected[0]).toContain('_receiveJSON')
+  })
+})
+
 describe('load generation guard', () => {
   it('increments the generation on each load', () => {
     const { bridge } = setup()

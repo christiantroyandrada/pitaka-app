@@ -59,9 +59,21 @@ describe('resolveTile', () => {
   })
 
   it('strips a trailing slash on the base url so the path is never doubled', () => {
-    expect(resolveTile(tile(), {}, 'https://example.com/')).toEqual({
+    expect(resolveTile(tile(), {}, `${BASE}/`)).toEqual({
       kind: 'h5',
-      url: 'https://example.com/h5/bills/',
+      url: 'https://fintech.ctaprojects.xyz/h5/bills/',
     })
+  })
+
+  // The base URL is destined to come from Remote Config, so it is attacker-shaped
+  // input. Refusing it here means a hostile value hides the tile rather than
+  // producing a URL that only the WebView screen would later reject.
+  it('refuses a base url that is not on the origin allowlist', () => {
+    expect(resolveTile(tile(), {}, 'https://evil.example.com')).toBeNull()
+  })
+
+  it('refuses a target that is not a plain registry key', () => {
+    expect(resolveTile(tile({ target: '../../etc' }), {}, BASE)).toBeNull()
+    expect(resolveTile(tile({ target: 'https://evil.example.com' }), {}, BASE)).toBeNull()
   })
 })
