@@ -26,7 +26,7 @@ modules of my own.
 | Firebase Remote Config | Not started |
 | BFF with request signing, second H5 app, VPS deploy | Not started |
 
-210 tests across 20 suites, strict TypeScript, CI on every push.
+215 tests across 20 suites, strict TypeScript, CI on every push.
 
 The bridge and the H5 page live here for now. They move to their own repos when
 there are two H5 apps to keep honest, which is the whole argument of

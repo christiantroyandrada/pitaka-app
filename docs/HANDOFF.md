@@ -5,7 +5,7 @@ This is what I'd need to know to pick it up cold.
 
 ## Where it actually stands
 
-**Done and verified.** 210 tests across 20 suites, `tsc --noEmit` clean, `expo export`
+**Done and verified.** 215 tests across 20 suites, `tsc --noEmit` clean, `expo export`
 bundles, CI green on every push. Run end to end in a browser on 2026-07-30: logged in,
 sent ₱50, watched the balance go 6,456.13 → 6,406.13, saw both entries in the
 transaction list. Verified again from a clean clone of `main`: `pnpm install`,
@@ -37,8 +37,7 @@ round-trip actually works.
 was removed rather than shipped. `/home` and `/transactions` prerender to an
 empty shell in the static web export because `useSyncExternalStore` has no
 `getServerSnapshot`; they hydrate fine in a browser, so this only matters if the
-web build is ever the shop window. `h5UrlFor` is tested and unused — the live
-path builds the URL in `resolveTile` instead.
+web build is ever the shop window.
 
 ## What I would do next, in this order
 
