@@ -41,3 +41,9 @@ example
 # generated native folders
 /ios
 /android
+
+# job-hunt material. Never belongs in a public repo.
+INTERVIEW-NOTES.md
+*interview-notes*
+*-CV.pdf
+*resume*

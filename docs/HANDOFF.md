@@ -24,6 +24,11 @@ ledger. See `src/bridge/`.
 second H5 app, VPS deploy. The [ADRs](adr/) for those are decisions taken in
 advance, not descriptions of code.
 
+**The H5 repos don't exist yet.** `pitaka-app` is the only repo. [ADR 1](adr/001-multi-repo.md)
+argues for one repo per H5 app and I still think that's right, but nothing has
+been split out: the bridge and the bills page both live here. Splitting with one
+H5 app would be ceremony, so the trigger is the second one.
+
 **Unverified on a device.** `react-native-webview` has no web build and this
 machine has no simulator, so the native postMessage transport has never run.
 `src/bridge/loopback.test.ts` drives every layer we own, including the JSON
@@ -38,6 +43,13 @@ was removed rather than shipped. `/home` and `/transactions` prerender to an
 empty shell in the static web export because `useSyncExternalStore` has no
 `getServerSnapshot`; they hydrate fine in a browser, so this only matters if the
 web build is ever the shop window.
+
+**[ADR 11](adr/011-native-payment-ux.md) describes UX that isn't there.** It says
+`requestPayment` opens a native confirmation sheet, and mentions `auth.signRequest`
+and `ui.showLoading`. None of the three exist. `createNativeHandlers.requestPayment`
+moves the money immediately with no prompt, while the bills page still says
+"Waiting for you to confirm in the app…". Either build the sheet or mark ADR 11 as
+a decision taken in advance, like 5, 6 and 7. Don't leave it reading as built.
 
 ## What I would do next, in this order
 
@@ -108,3 +120,22 @@ The thirteen ADRs are drafts and each says so on its last line. Rewrite them in 
 words. That's the point of having them, and I can't defend prose I didn't write. Start
 with 9, 10, 12 and 13, since those describe code that actually exists and are the ones
 worth talking through.
+
+Decide separately whether this file belongs in a public repo at all. It's a note to
+myself, and the line above reads very differently to a stranger than it does to me.
+Untracking it and disclosing the drafting once in the [ADR index](adr/README.md) says
+the same thing without repeating it thirteen times.
+
+## Where this stopped
+
+Development paused at `68669c1` on 2026-07-30, with everything pushed and CI green.
+The last session was an audit of whether a stranger could clone this and run it, and
+whether the demo survives a walkthrough. A clean clone installs, typechecks and passes
+215 tests, so the fork path is proven. What it found and fixed: an idempotency key
+scoped to the amount but not the payee, H5 pages unreachable from a phone, four tiles
+opening on pages that don't exist, a bridge a hostile page could wedge, `1,5` parsing
+as ₱15.00, and a hardened URL builder with no caller.
+
+**First thing on picking this back up:** device verification, step 1 below. Nothing in
+`src/bridge/` has run over the real transport, and that's the centrepiece. Everything
+after it is building on an unproven foundation.
