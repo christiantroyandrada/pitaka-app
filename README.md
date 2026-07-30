@@ -13,17 +13,19 @@ integer centavos, an append-only ledger, and idempotent money movement.
 
 ## Status
 
-**P0 — pure React Native, runs in Expo Go.** No Firebase, no WebView, no native
-modules, no server. Every seam that later phases replace with a real
+**P0 complete — pure React Native, runs in Expo Go.** No Firebase, no WebView, no
+native modules, no server. Every seam that later phases replace with a real
 implementation already sits behind a tested module boundary.
 
 | Layer | State |
 |---|---|
-| Money, ledger, transfers | Done — 57 tests |
+| Money, ledger, transfers | Done |
 | Config parsing and tile resolution | Done |
 | Wallet store | Done |
-| Screens (login, home, send, transactions) | In progress |
+| Screens (login, home, send, transactions) | Done |
 | Firebase Remote Config, WebView container, typed bridge, H5 apps | Later phases |
+
+95 tests, strict TypeScript, CI on every push.
 
 ## Three decisions worth the click
 
