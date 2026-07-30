@@ -5,6 +5,7 @@ import { createNativeHandlers } from './native'
 import { createWalletStore } from '@/data/walletStore'
 import { ACCOUNTS } from '@/data/seed'
 import type { HandlerSet } from './methods'
+import { PROTOCOL_VERSION } from './envelope'
 
 /**
  * Wires a client straight to a host in-process. No WebView, no postMessage, so
@@ -38,8 +39,10 @@ const contract = (name: string, makeHandlers: () => HandlerSet) => {
 
     it('reports env info including the protocol version', async () => {
       const { client } = connect(makeHandlers())
+      // Tied to the constant so bumping PROTOCOL_VERSION can't leave a host
+      // advertising a version it no longer speaks.
       await expect(client.call('system.getEnvInfo')).resolves.toMatchObject({
-        bridgeVersion: 1,
+        bridgeVersion: PROTOCOL_VERSION,
       })
     })
 
@@ -113,6 +116,15 @@ const contract = (name: string, makeHandlers: () => HandlerSet) => {
         expect(replay.transactionId).toBe(first.transactionId)
       })
 
+      // The H5 can tell a refusal from a bug only if the code survives the hop.
+      it('refuses the same key with a different amount', async () => {
+        const { client } = connect(makeHandlers())
+        await client.call('payments.requestPayment', payment())
+        await expect(
+          client.call('payments.requestPayment', payment({ amountCentavos: 9999 })),
+        ).rejects.toMatchObject({ code: 'IDEMPOTENCY_KEY_REUSED' })
+      })
+
       it('rejects a zero amount', async () => {
         const { client } = connect(makeHandlers())
         await expect(
@@ -172,7 +184,7 @@ describe('native host over the real ledger', () => {
     expect(store.getEntries().reduce((s, e) => s + e.amountCentavos, 0)).toBe(0)
   })
 
-  it('surfaces an overdraft as INTERNAL rather than moving money', async () => {
+  it('surfaces an overdraft as INSUFFICIENT_FUNDS rather than moving money', async () => {
     const store = createWalletStore()
     const before = store.getBalance(ACCOUNTS.user)
     const { client } = connect(createNativeHandlers(store))
@@ -184,7 +196,7 @@ describe('native host over the real ledger', () => {
         reference: '1',
         idempotencyKey: 'idem-over',
       }),
-    ).rejects.toMatchObject({ code: 'INTERNAL' })
+    ).rejects.toMatchObject({ code: 'INSUFFICIENT_FUNDS' })
 
     expect(store.getBalance(ACCOUNTS.user)).toBe(before)
   })

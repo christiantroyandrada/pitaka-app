@@ -1,5 +1,6 @@
 import type { z } from 'zod'
 import {
+  BridgeMethodError,
   PROTOCOL_VERSION,
   type BridgeEvent,
   type BridgeRequest,
@@ -62,9 +63,12 @@ export function createBridgeHost({ reply, emit }: Options): BridgeHost {
     try {
       const result = await reg.handler(params)
       reply({ id: req.id, ok: true, result })
-    } catch {
-      // The thrown message can carry paths or secrets, so it stays in the host.
-      fail(req.id, 'INTERNAL', `${req.method} failed`)
+    } catch (err) {
+      // A declared domain refusal is part of the contract, so its code travels.
+      // Anything else stays behind INTERNAL: an arbitrary thrown message can
+      // carry a path or a secret.
+      if (err instanceof BridgeMethodError) fail(req.id, err.code, err.message)
+      else fail(req.id, 'INTERNAL', `${req.method} failed`)
     }
   }
 

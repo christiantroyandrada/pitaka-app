@@ -9,6 +9,9 @@ type Injector = (js: string) => void
  * bridge object; the H5 bundle owns it and this only delivers JSON into it.
  * See ADR 3.
  */
+/** Generous for real traffic, small enough that a hostile page can't grow memory. */
+const MAX_IN_FLIGHT = 64
+
 export function createWebViewBridge(handlers: HandlerSet, inject: Injector) {
   // Bumped on every load so a reply from a previous document is dropped rather
   // than delivered to a page that no longer exists. See ADR 3.
@@ -49,7 +52,13 @@ export function createWebViewBridge(handlers: HandlerSet, inject: Injector) {
       } catch {
         return
       }
-      if (typeof req?.id === 'string') arrivedIn.set(req.id, loadId)
+      // host.handle returns without replying when it can't correlate a frame, so
+      // nothing would prune this entry. Cap the map: the page controls both the
+      // ids and the message rate.
+      if (typeof req?.id === 'string') {
+        if (arrivedIn.size >= MAX_IN_FLIGHT) return
+        arrivedIn.set(req.id, loadId)
+      }
       void host.handle(req)
     },
     sendEvent: host.sendEvent,

@@ -13,9 +13,8 @@ append-only ledger, and idempotent money movement.
 
 ## Status
 
-**P0 complete. Pure React Native, runs in Expo Go.** No Firebase, no WebView, no
-native modules, no server. Every seam that later phases replace with a real
-implementation already sits behind a tested module boundary.
+**P0 done, P1 started.** Runs in Expo Go. No Firebase, no server, no native
+modules of my own.
 
 | Layer | State |
 |---|---|
@@ -23,9 +22,22 @@ implementation already sits behind a tested module boundary.
 | Config parsing and tile resolution | Done |
 | Wallet store | Done |
 | Screens (login, home, send, transactions) | Done |
-| Firebase Remote Config, WebView container, typed bridge, H5 apps | Later phases |
+| Typed JS bridge, WebView container, one H5 page | Built, in this repo rather than their own |
+| Firebase Remote Config | Not started |
+| BFF with request signing, second H5 app, VPS deploy | Not started |
 
-95 tests, strict TypeScript, CI on every push.
+197 tests, strict TypeScript, CI on every push.
+
+The bridge and the H5 page live here for now. They move to their own repos when
+there are two H5 apps to keep honest, which is the whole argument of
+[ADR 1](docs/adr/001-multi-repo.md).
+
+**One gap worth stating plainly:** `react-native-webview` has no web build and
+this machine has no simulator, so the native transport is unverified on a
+device. `src/bridge/loopback.test.ts` covers every layer on both sides,
+including the JSON injection boundary and a real ledger debit from an
+H5-initiated payment. The untested link is react-native-webview's own
+postMessage plumbing.
 
 ## Three decisions worth the click
 

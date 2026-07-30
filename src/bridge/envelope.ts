@@ -9,6 +9,9 @@ export type ErrorCode =
   | 'VERSION_MISMATCH'
   | 'BRIDGE_UNAVAILABLE'
   | 'INTERNAL'
+  | 'INSUFFICIENT_FUNDS'
+  | 'IDEMPOTENCY_KEY_REUSED'
+  | 'INVALID_AMOUNT'
 
 export type BridgeError = { code: ErrorCode; message: string }
 
@@ -32,6 +35,20 @@ export class BridgeCallError extends Error {
     super(error.message)
     this.name = 'BridgeCallError'
     this.code = error.code
+  }
+}
+
+/**
+ * Thrown by a handler when the refusal is a domain outcome the caller must be
+ * able to act on. Anything else a handler throws becomes INTERNAL, so a bug
+ * can't smuggle its message out.
+ */
+export class BridgeMethodError extends Error {
+  readonly code: ErrorCode
+  constructor(code: ErrorCode, message: string) {
+    super(message)
+    this.name = 'BridgeMethodError'
+    this.code = code
   }
 }
 

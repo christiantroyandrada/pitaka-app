@@ -1,5 +1,6 @@
 import {
   BridgeCallError,
+  type BridgeError,
   PROTOCOL_VERSION,
   timeoutFor,
   type BridgeEvent,
@@ -83,12 +84,32 @@ export function createBridgeClient({
     })
   }
 
+  /**
+   * A failure frame with no usable error must still settle the promise. Trusting
+   * res.error here would throw between eviction and rejection, and the caller
+   * would wait forever with the timer already cleared.
+   */
+  const toBridgeError = (raw: unknown): BridgeError => {
+    const e = raw as Partial<BridgeError> | undefined
+    return {
+      code: typeof e?.code === 'string' ? (e.code as BridgeError['code']) : 'INTERNAL',
+      message: typeof e?.message === 'string' ? e.message : 'host returned a malformed error',
+    }
+  }
+
   const _receive = (res: BridgeResponse): void => {
     if (!res || typeof res !== 'object' || typeof res.id !== 'string') return
+    // Read the payload before evicting, so nothing that can throw runs between
+    // settling and calling back.
+    let resolveWith: unknown
+    let rejection: BridgeCallError | null = null
+    if (res.ok === true) resolveWith = res.result
+    else rejection = new BridgeCallError(toBridgeError(res.error))
+
     const entry = settle(res.id)
     if (!entry) return
-    if (res.ok) entry.resolve(res.result)
-    else entry.reject(new BridgeCallError(res.error))
+    if (rejection) entry.reject(rejection)
+    else entry.resolve(resolveWith)
   }
 
   const _receiveEvent = (evt: BridgeEvent): void => {

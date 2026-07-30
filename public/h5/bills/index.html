@@ -36,7 +36,9 @@
   const pending = new Map()
   let n = 0
 
-  const inContainer = !!window.ReactNativeWebView
+  // Not a handshake: this only asks whether the channel object exists. A host
+  // that never answers is caught by the per-call timeout instead.
+  const hasChannel = !!window.ReactNativeWebView
 
   const bridge = {
     _receiveJSON(raw) { try { bridge._receive(JSON.parse(raw)) } catch {} },
@@ -52,7 +54,7 @@
   window.__PITAKA_BRIDGE__ = bridge
 
   function call(method, params) {
-    if (!inContainer) return Promise.reject({ code: 'BRIDGE_UNAVAILABLE', message: 'no host' })
+    if (!hasChannel) return Promise.reject({ code: 'BRIDGE_UNAVAILABLE', message: 'no host' })
     const id = `h5-${++n}`
     const ms = INTERACTIVE.has(method) ? 120000 : 10000
     return new Promise((resolve, reject) => {
@@ -69,7 +71,7 @@
   const say = (t) => { out.textContent = t }
 
   ;(async () => {
-    if (!inContainer) {
+    if (!hasChannel) {
       document.getElementById('who').textContent = 'Running outside the app'
       say('No host detected, so the bridge is unavailable. Open this from the Pitaka app.')
       return

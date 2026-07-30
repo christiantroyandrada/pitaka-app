@@ -10,13 +10,13 @@ repository, host, or service is named anywhere in this repo.
 | # | Decision | Phase |
 |---|---|---|
 | [1](001-multi-repo.md) | One repo per H5 microfrontend | Later |
-| [2](002-bridge-timeouts.md) | Timeout-bounded bridge calls, client-side only | Later |
-| [3](003-h5-owns-bridge-object.md) | The H5 owns the bridge object; native only delivers into it | Later |
+| [2](002-bridge-timeouts.md) | Timeout-bounded bridge calls, client-side only | **Built** |
+| [3](003-h5-owns-bridge-object.md) | The H5 owns the bridge object; native only delivers into it | **Built** |
 | [4](004-native-owns-firebase.md) | Native owns Firebase; H5 receives flags through the bridge | Later |
 | [5](005-native-signs-requests.md) | Native signs requests and hashes what it signs | Later |
 | [6](006-bff-verifies.md) | The BFF verifies signatures rather than relaying them | Later |
 | [7](007-session-identity.md) | Session identity is separate from transport integrity | Later |
-| [8](008-origin-allowlist.md) | Config-supplied URLs are origin-allowlisted, enforced twice | Partly built |
+| [8](008-origin-allowlist.md) | Config-supplied URLs are origin-allowlisted, enforced twice | **Built** |
 | [9](009-integer-centavos-ledger.md) | Integer centavos and an append-only ledger | **Built** |
 | [10](010-idempotency.md) | Idempotency keys on every money mutation | **Built** |
 | [11](011-native-payment-ux.md) | Native owns the payment confirmation UX | Later |

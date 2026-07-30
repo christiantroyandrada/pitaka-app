@@ -1,4 +1,4 @@
-import { isAllowedUrl, h5UrlFor, ALLOWED_ORIGINS } from './origins'
+import { isAllowedUrl, h5UrlFor, isAllowedIn, RELEASE_ORIGINS, DEV_ONLY_ORIGINS } from './origins'
 
 const BASE = 'https://fintech.ctaprojects.xyz'
 
@@ -49,9 +49,23 @@ describe('isAllowedUrl', () => {
     expect(isAllowedUrl('')).toBe(false)
   })
 
-  it('allows localhost only for development', () => {
-    // Kept deliberately so the H5 dev server works without loosening prod.
-    expect(ALLOWED_ORIGINS.some((o) => o.startsWith('http://localhost'))).toBe(true)
+  it('allows localhost in development so the H5 dev server works', () => {
+    expect(DEV_ONLY_ORIGINS.some((o) => o.startsWith('http://localhost'))).toBe(true)
+  })
+
+  // __DEV__ is true under jest, so the release list is asserted directly rather
+  // than through isAllowedUrl. A plaintext origin here is reachable via the
+  // app's deep-link scheme in a shipped build.
+  it('ships no plaintext origin in a release build', () => {
+    expect(RELEASE_ORIGINS.every((o) => o.startsWith('https://'))).toBe(true)
+  })
+
+  it('rejects a localhost url against the release list', () => {
+    expect(isAllowedIn(RELEASE_ORIGINS, 'http://localhost:8081/h5/bills/')).toBe(false)
+  })
+
+  it('accepts the production origin against the release list', () => {
+    expect(isAllowedIn(RELEASE_ORIGINS, `${BASE}/h5/bills/`)).toBe(true)
   })
 })
 

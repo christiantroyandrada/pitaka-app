@@ -66,7 +66,12 @@ export default function WebViewScreen() {
         onLoadStart={bridge.onLoadStart}
         onMessage={(e) => bridge.onMessage(e.nativeEvent.data)}
         onShouldStartLoadWithRequest={shouldLoad}
-        originWhitelist={['https://*', 'http://localhost:*']}
+        // Deliberately wide. react-native-webview checks originWhitelist FIRST,
+        // and a url that fails it is handed to Linking.openURL without ever
+        // reaching the callback below. A narrow list here would turn a blocked
+        // navigation into "open this in another app", which is worse. The exact
+        // allowlist in shouldLoad is the real gate.
+        originWhitelist={['*']}
         javaScriptEnabled
         style={{ flex: 1 }}
       />

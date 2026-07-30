@@ -1,4 +1,5 @@
 import { maskMobile, type HandlerSet } from './methods'
+import { BridgeMethodError, PROTOCOL_VERSION } from './envelope'
 import { SEED_USER } from '@/data/seed'
 import type { WalletStore } from '@/data/walletStore'
 
@@ -8,7 +9,7 @@ import type { WalletStore } from '@/data/walletStore'
  */
 export function createNativeHandlers(store: WalletStore, flags: Record<string, string> = {}): HandlerSet {
   return {
-    getEnvInfo: () => ({ platform: 'native', appVersion: '1.0.0', bridgeVersion: 1 }),
+    getEnvInfo: () => ({ platform: 'native', appVersion: '1.0.0', bridgeVersion: PROTOCOL_VERSION }),
 
     // The WebView gets a masked number. It never needs the real one.
     getProfile: () => ({
@@ -31,7 +32,11 @@ export function createNativeHandlers(store: WalletStore, flags: Record<string, s
         amountCentavos,
         idempotencyKey,
       })
-      if (!result.ok) throw new Error(result.code)
+      if (!result.ok) {
+        const message =
+          result.code === 'INSUFFICIENT_FUNDS' ? 'not enough balance' : 'could not pay'
+        throw new BridgeMethodError(result.code, message)
+      }
       return { transactionId: result.txId, status: 'completed' }
     },
   }

@@ -172,3 +172,29 @@ describe('document lifecycle', () => {
     expect(sent).toHaveLength(0)
   })
 })
+
+describe('malformed failure frames still settle', () => {
+  it('rejects when a failure frame carries no error object', async () => {
+    const { sent, client } = setup()
+    const promise = client.call('payments.requestPayment')
+    client._receive({ id: sent[0].id, ok: false } as never)
+    await expect(promise).rejects.toMatchObject({ code: 'INTERNAL' })
+    expect(client.pendingCount()).toBe(0)
+  })
+
+  it('rejects when the error code is not a string', async () => {
+    const { sent, client } = setup()
+    const promise = client.call('a')
+    client._receive({ id: sent[0].id, ok: false, error: { code: 7, message: 9 } } as never)
+    await expect(promise).rejects.toMatchObject({ code: 'INTERNAL' })
+  })
+
+  it('does not leave the call pending after a malformed frame', async () => {
+    const { sent, client } = setup()
+    const promise = client.call('payments.requestPayment')
+    client._receive({ id: sent[0].id, ok: false } as never)
+    await promise.catch(() => {})
+    jest.advanceTimersByTime(600_000)
+    expect(client.pendingCount()).toBe(0)
+  })
+})

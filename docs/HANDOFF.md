@@ -5,7 +5,7 @@ This is what I'd need to know to pick it up cold.
 
 ## Where it actually stands
 
-**Done and verified.** 95 tests across 13 suites, `tsc --noEmit` clean, `expo export`
+**Done and verified.** 197 tests across 21 suites, `tsc --noEmit` clean, `expo export`
 bundles, CI green on every push. Run end to end in a browser on 2026-07-30: logged in,
 sent ₱50, watched the balance go 6,456.13 → 6,406.13, saw both entries in the
 transaction list.
@@ -14,15 +14,32 @@ transaction list.
 transfers, zod-validated config parsing with fallback, a pure tile resolver that fails
 closed, a hand-rolled store on `useSyncExternalStore`, and five screens.
 
-**Not built, and honestly labelled as such:** Firebase Remote Config, the WebView
-container, the typed bridge, the H5 microfrontends, the BFF, VPS deploy. The
-[ADRs](adr/) for those are decisions taken in advance, not descriptions of code.
+**Also built since, in this repo rather than their own:** the typed bridge
+(envelope, timeout-bounded client, host registry, exact-origin allowlist), the
+WebView container, and one H5 bills page that pays a real bill through the
+ledger. See `src/bridge/`.
+
+**Still not built:** Firebase Remote Config, the BFF with request signing, a
+second H5 app, VPS deploy. The [ADRs](adr/) for those are decisions taken in
+advance, not descriptions of code.
+
+**Unverified on a device.** `react-native-webview` has no web build and this
+machine has no simulator, so the native postMessage transport has never run.
+`src/bridge/loopback.test.ts` drives every layer we own, including the JSON
+injection boundary. First job on a machine with Xcode: run the bills flow on a
+simulator and see whether the round-trip actually works.
 
 ## What I would do next, in this order
 
 Each step is independently shippable. Don't start two.
 
-**1. Remote Config (half a day).** Replace the single line
+**1. Verify the bridge on a device (an hour, and do this first).** Everything in
+`src/bridge/` is covered by tests but has never run over the real transport. Boot
+a simulator, open Bills from the home grid, tap Pay. If the round-trip works,
+that's P1's centrepiece proven. If it doesn't, fix it before building anything on
+top.
+
+**2. Remote Config (half a day).** Replace the single line
 `parseServicesGrid(undefined)` in `src/app/home.tsx` with a real fetch. Everything downstream
 already exists and is tested: the schema, the fallback, the resolver, the fixture
 matrix. Needs `expo prebuild` and a dev client, so this is the step
@@ -30,31 +47,20 @@ that ends Expo Go. **Set `minimumFetchIntervalMillis` to 0 in dev builds**; the
 default is twelve hours and the "flip a flag, see it change" demo silently fails
 without it.
 
-**2. The WebView container (a day).** `expo install react-native-webview`, add a
-`/webview` route taking a URL param, and have `home.tsx` push to it instead of showing
-an alert. Enforce the origin allowlist in `onShouldStartLoadWithRequest`, see
-[ADR 8](adr/008-origin-allowlist.md). At this point tapping Bills opens a real page and
-the architecture becomes visible.
-
-**3. The bridge, own repo (two to three days).** The typed envelope, the H5 client with
-per-call timeouts, the browser mock, and one shared contract suite run against both. Do
-the contract suite first; it's the thing that stops the mock drifting. See
-[ADR 2](adr/002-bridge-timeouts.md) and [ADR 3](adr/003-h5-owns-bridge-object.md).
-
-**4. One H5 app (two days).** Vite + React, consuming the bridge as a pinned git
+**3. A second H5 app (two days).** Vite + React, consuming the bridge as a pinned git
 dependency. Bills is the right one. It's the flow that justifies a native payment
 sheet.
 
-**5. The BFF (two days).** Express, the ledger domain copied across, HMAC verification,
+**4. The BFF (two days).** Express, the ledger domain copied across, HMAC verification,
 idempotency, and the error envelope. See ADRs [5](005-native-signs-requests.md),
 [6](006-bff-verifies.md), [7](007-session-identity.md).
 
-**6. Deploy.** `fintech.ctaprojects.xyz`, reusing the hardened nginx patterns from
+**5. Deploy.** `fintech.ctaprojects.xyz`, reusing the hardened nginx patterns from
 chat-app: `default_server` returning 444, security headers re-declared inside every
 `location` that sets any header, dotfile denial, OCSP stapling.
 
-If time is short, do 1 and 2 only. They're cheap and they make the config-driven
-architecture demonstrable, which is the whole pitch.
+If time is short, do 1 and 2 only. Device verification plus Remote Config makes the
+config-driven architecture demonstrable, which is the whole pitch.
 
 ## Traps already paid for
 
@@ -81,6 +87,10 @@ All nine are recorded at the top of
 - **An `external` tile type.** It would undo both the registry-id decision and the
   origin allowlist.
 - **Writing ADRs for code that doesn't exist yet** beyond the thirteen already here.
+- **Trusting the H5 page's hand-written client.** It duplicates the wire constants
+  because it has no build step. `src/bridge/h5Page.test.ts` guards the copies, and
+  it does fail on a `PROTOCOL_VERSION` bump. Keep that guard until the page gets a
+  real build and imports the client.
 
 ## Before showing this to anyone
 

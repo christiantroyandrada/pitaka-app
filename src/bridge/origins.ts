@@ -3,13 +3,22 @@
  * would accept `evil-fintech.ctaprojects.xyz`, and `includes` would accept
  * `fintech.ctaprojects.xyz.attacker.com`. See ADR 8.
  */
-export const ALLOWED_ORIGINS: readonly string[] = [
-  'https://fintech.ctaprojects.xyz',
-  // The H5 dev server. Kept separate so production stays https-only.
+export const RELEASE_ORIGINS: readonly string[] = ['https://fintech.ctaprojects.xyz']
+
+/**
+ * Plaintext dev servers, and they must never reach a release build. The app
+ * registers a deep-link scheme, so a shipped `http://localhost` entry would let
+ * `pitakaapp://webview?url=http://localhost:8081/x` load an attacker's page
+ * from a local port and talk to the bridge.
+ */
+export const DEV_ONLY_ORIGINS: readonly string[] = [
   'http://localhost:5173',
-  // The static H5 pages served alongside the Expo web build in development.
   'http://localhost:8081',
 ]
+
+export const ALLOWED_ORIGINS: readonly string[] = __DEV__
+  ? [...RELEASE_ORIGINS, ...DEV_ONLY_ORIGINS]
+  : RELEASE_ORIGINS
 
 const originOf = (value: string): string | null => {
   try {
@@ -19,13 +28,16 @@ const originOf = (value: string): string | null => {
   }
 }
 
-export function isAllowedUrl(value: string): boolean {
+/** Exported so a test can assert the release list directly; __DEV__ is true under jest. */
+export function isAllowedIn(allowed: readonly string[], value: string): boolean {
   const origin = originOf(value)
-  // A javascript: or data: url has an opaque origin, which serialises to "null"
-  // and can never match an entry.
+  // javascript: and data: urls have an opaque origin, which serialises to
+  // "null" and can never match an entry.
   if (!origin || origin === 'null') return false
-  return ALLOWED_ORIGINS.includes(origin)
+  return allowed.includes(origin)
 }
+
+export const isAllowedUrl = (value: string): boolean => isAllowedIn(ALLOWED_ORIGINS, value)
 
 /** Registry keys are interpolated into a path, so they stay strictly bounded. */
 const REGISTRY_KEY = /^[a-z][a-z0-9-]*$/
